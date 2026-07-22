@@ -1,7 +1,7 @@
 import json
 import re
-import requests
 from bs4 import BeautifulSoup
+from curl_cffi import requests
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
@@ -43,18 +43,17 @@ def scrape_pricer():
     url = "https://pricer.lt/cenos/search?query=coca-cola"
     
     try:
-        res = requests.get(url, headers=HEADERS, timeout=15)
+        # impersonate="chrome" apsaugo nuo 403 blokavimo simuliuodamas naršyklės TLS
+        res = requests.get(url, headers=HEADERS, impersonate="chrome", timeout=15)
         if res.status_code != 200:
             print(f"Pricer.lt HTTP klaida: {res.status_code}")
             return deals
 
         soup = BeautifulSoup(res.text, 'html.parser')
         
-        # Pricer.lt produktų kortelių paieška (pritaikoma pagal bendrą struktūrą)
-        items = soup.select('.product-item, .search-result-item, tr.product-row')
+        items = soup.select('.product-item, .search-result-item, tr.product-row, .product')
         
         if not items:
-            # Alternatyvi paieška pagal bendrus elementus jei struktūra kitokia
             items = soup.find_all(lambda tag: tag.name == 'div' and 'coca-cola' in tag.get_text().lower())
 
         for item in items:
@@ -68,7 +67,6 @@ def scrape_pricer():
             if 'coca-cola' not in title.lower():
                 title = "Coca-Cola"
 
-            # Kainos paieška tekstinėje išraiškoje
             prices = re.findall(r'([\d\.,]+)\s*€', text)
             price = float(prices[0].replace(',', '.')) if prices else 0.0
             if price == 0.0:
