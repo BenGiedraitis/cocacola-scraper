@@ -1,1 +1,410 @@
+<!DOCTYPE html>
+<html lang="lt" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>COCACOLA TRACKER - Akcijos ir Kainos</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Plus Jakarta Sans', 'sans-serif'],
+          },
+          colors: {
+            coca: {
+              red: '#E61C24',
+              black: '#0D0D0D',
+              card: '#171717'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body class="bg-coca-black text-white min-h-screen flex flex-col font-sans antialiased">
 
+  <!-- Navigacija -->
+  <header class="border-b border-zinc-800 bg-coca-black/95 backdrop-blur-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 py-3.5 flex items-center justify-between gap-4">
+      
+      <a href="#" class="flex items-center gap-3">
+        <div class="bg-coca-red text-white p-2 rounded-xl font-black shadow-lg shadow-red-600/30">
+          <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
+            <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
+          </svg>
+        </div>
+        <div class="flex flex-col">
+          <span class="font-black text-lg tracking-tight leading-none text-white">COCACOLA<span class="text-coca-red">TRACKER</span></span>
+          <span class="text-[10px] text-zinc-400 font-bold tracking-wider uppercase mt-0.5">Kainų stebėjimo sistema</span>
+        </div>
+      </a>
+
+      <select id="sortSelect" class="bg-zinc-900 border border-zinc-700/80 rounded-xl px-3 py-2 text-xs font-semibold text-zinc-200 focus:outline-none focus:border-coca-red cursor-pointer">
+        <option value="unit-price-asc">Pigiausias litras viršuje (€/l)</option>
+        <option value="price-asc">Pigiausia pakuotė viršuje</option>
+        <option value="discount-desc">Didžiausia nuolaida</option>
+        <option value="price-desc">Brangiausios viršuje</option>
+      </select>
+
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 py-6 flex-grow w-full">
+
+    <!-- Parduotuvių filtrai -->
+    <div class="flex gap-2 overflow-x-auto pb-4 mb-6 no-scrollbar" id="storeFilters">
+      <button data-store="visi" class="filter-btn bg-coca-red text-white px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition inline-flex items-center justify-center gap-2">
+        Visi tinklai
+      </button>
+      <button data-store="Maxima" class="filter-btn bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition inline-flex items-center justify-center gap-2">
+        <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
+        Maxima
+      </button>
+      <button data-store="IKI" class="filter-btn bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition inline-flex items-center justify-center gap-2">
+        <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+        IKI
+      </button>
+      <button data-store="Rimi" class="filter-btn bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition inline-flex items-center justify-center gap-2">
+        <span class="w-2.5 h-2.5 rounded-full bg-red-600"></span>
+        Rimi
+      </button>
+      <button data-store="Lidl" class="filter-btn bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition inline-flex items-center justify-center gap-2">
+        <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
+        Lidl
+      </button>
+      <button data-store="Norfa" class="filter-btn bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition inline-flex items-center justify-center gap-2">
+        <span class="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
+        Norfa
+      </button>
+    </div>
+
+    <!-- GERIAUSIAS DEALAS SECTION -->
+    <div id="bestDealContainer" class="mb-8">
+      <!-- Dinamiškai užpildoma per JS -->
+    </div>
+
+    <h2 class="text-xs font-bold uppercase tracking-wider text-zinc-400 mb-4">Visi pasiūlymai</h2>
+
+    <!-- Kortelių Tinklelis -->
+    <div id="dealsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 items-start">
+      <!-- Generuojama per JS -->
+    </div>
+
+    <!-- Tuščia būsena -->
+    <div id="emptyState" class="hidden text-center py-20">
+      <p class="text-zinc-400 text-sm mb-4" id="emptyStateText">Pagal pasirinktus filtrus akcijų nerasta.</p>
+      <button onclick="resetFilters()" class="bg-zinc-800 text-white text-xs font-bold px-4 py-2 rounded-xl">Išvalyti paiešką</button>
+    </div>
+
+  </main>
+
+  <footer class="border-t border-zinc-800/80 py-6 text-center text-xs text-zinc-500 mt-auto">
+    <p>© COCACOLA TRACKER — Nuolat atnaujinamos akcijos.</p>
+  </footer>
+
+  <script>
+    const STORE_CONFIG = {
+      Maxima: { bg: 'bg-blue-600', text: 'text-white', label: 'MAXIMA' },
+      IKI: { bg: 'bg-amber-400', text: 'text-zinc-950', label: 'IKI' },
+      Lidl: { bg: 'bg-blue-500', text: 'text-white', label: 'LIDL' },
+      Rimi: { bg: 'bg-red-700', text: 'text-white', label: 'RIMI' },
+      Norfa: { bg: 'bg-emerald-600', text: 'text-white', label: 'NORFA' }
+    };
+
+    const SVG_PACKAGING = {
+      can: `
+        <svg class="h-28 w-auto filter drop-shadow-xl" viewBox="0 0 100 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="25" y="10" width="50" height="8" rx="2" fill="#D1D5DB"/>
+          <rect x="20" y="18" width="60" height="124" rx="6" fill="#E61C24"/>
+          <path d="M20 85 Q50 65 80 85 Q50 105 20 85" fill="#FFFFFF" opacity="0.95"/>
+          <rect x="23" y="142" width="54" height="6" rx="2" fill="#9CA3AF"/>
+        </svg>
+      `,
+      glass: `
+        <svg class="h-32 w-auto filter drop-shadow-xl" viewBox="0 0 100 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="42" y="10" width="16" height="8" rx="1" fill="#E61C24"/>
+          <path d="M44 18 L44 45 Q30 70 35 110 Q28 135 32 170 Q32 185 40 188 L60 188 Q68 185 68 170 Q72 135 65 110 Q70 70 56 45 L56 18 Z" fill="#1C1917"/>
+          <path d="M34 105 Q50 100 66 105 L65 130 Q50 135 35 130 Z" fill="#E61C24"/>
+          <path d="M34 118 Q50 112 66 118" stroke="#FFFFFF" stroke-width="2"/>
+        </svg>
+      `,
+      bottle: `
+        <svg class="h-36 w-auto filter drop-shadow-xl" viewBox="0 0 100 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="40" y="10" width="20" height="14" rx="2" fill="#E61C24"/>
+          <rect x="43" y="24" width="14" height="20" fill="#262626"/>
+          <path d="M43 44 Q25 65 25 100 L25 190 Q25 215 35 220 L65 220 Q75 215 75 190 L75 100 Q75 65 57 44 Z" fill="#18181B"/>
+          <rect x="25" y="100" width="50" height="50" fill="#E61C24"/>
+          <path d="M25 125 Q50 115 75 125" stroke="#FFFFFF" stroke-width="3"/>
+        </svg>
+      `
+    };
+
+    let DEALS_DATA = [];
+    let currentStore = 'visi';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initListeners();
+      loadDeals();
+    });
+
+    async function loadDeals() {
+      try {
+        const res = await fetch('https://raw.githubusercontent.com/Bengiedraitis/cocacola-scraper/main/deals.json?v=' + Date.now());
+        if (!res.ok) throw new Error('Data fetch failed');
+        const rawData = await res.json();
+        
+        DEALS_DATA = rawData.map((item, index) => {
+          const price = Number(item.price) || 0;
+          const oldPrice = item.oldPrice ? Number(item.oldPrice) : null;
+          const volumeLiters = Number(item.volumeLiters) || parseVolumeLiters(item.volume) || 1.0;
+          
+          let discount = item.discount;
+          if (!discount && oldPrice && oldPrice > price) {
+            discount = Math.round(((oldPrice - price) / oldPrice) * 100);
+          }
+
+          return {
+            id: item.id || index + 1,
+            store: item.store || 'Kita',
+            type: item.type || detectPackagingType(item.title, item.volume),
+            title: item.title || 'Coca-Cola',
+            volume: item.volume || `${volumeLiters} l`,
+            volumeLiters: volumeLiters,
+            price: price,
+            oldPrice: oldPrice,
+            discount: discount || 0,
+            validUntil: item.validUntil || 'Akcija galioja'
+          };
+        });
+
+        applyFiltersAndSort();
+      } catch (err) {
+        console.error('Klaida užkraunant deals.json:', err);
+        showErrorState('Nepavyko užkrauti duomenų arba failas deals.json tuščias.');
+      }
+    }
+
+    function detectPackagingType(title = '', volume = '') {
+      const text = (title + ' ' + volume).toLowerCase();
+      if (text.includes('skardin') || text.includes('can')) return 'can';
+      if (text.includes('stikl') || text.includes('glass')) return 'glass';
+      return 'bottle';
+    }
+
+    function parseVolumeLiters(volumeStr = '') {
+      if (!volumeStr) return null;
+      const match = volumeStr.match(/([\d\.,]+)\s*l/i);
+      if (match) {
+        return parseFloat(match[1].replace(',', '.'));
+      }
+      return null;
+    }
+
+    function initListeners() {
+      document.querySelectorAll('#storeFilters button').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          document.querySelectorAll('#storeFilters button').forEach(b => {
+            b.className = "filter-btn bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition inline-flex items-center justify-center gap-2";
+          });
+          e.currentTarget.className = "filter-btn bg-coca-red text-white px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition shadow-md shadow-red-900/20 inline-flex items-center justify-center gap-2";
+          currentStore = e.currentTarget.getAttribute('data-store');
+          applyFiltersAndSort();
+        });
+      });
+
+      document.getElementById('sortSelect').addEventListener('change', applyFiltersAndSort);
+    }
+
+    function applyFiltersAndSort() {
+      const sort = document.getElementById('sortSelect').value;
+
+      let filtered = DEALS_DATA.filter(item => {
+        return currentStore === 'visi' || item.store.toLowerCase() === currentStore.toLowerCase();
+      });
+
+      filtered.sort((a, b) => {
+        const unitPriceA = a.price / a.volumeLiters;
+        const unitPriceB = b.price / b.volumeLiters;
+
+        if (sort === 'unit-price-asc') return unitPriceA - unitPriceB;
+        if (sort === 'price-asc') return a.price - b.price;
+        if (sort === 'price-desc') return b.price - a.price;
+        if (sort === 'discount-desc') return b.discount - a.discount;
+        return 0;
+      });
+
+      renderBestDeal(filtered);
+      renderGrid(filtered);
+    }
+
+    function renderBestDeal(items) {
+      const container = document.getElementById('bestDealContainer');
+      
+      if (items.length === 0) {
+        container.innerHTML = '';
+        return;
+      }
+
+      const best = items.reduce((min, item) => {
+        return (item.price / item.volumeLiters) < (min.price / min.volumeLiters) ? item : min;
+      }, items[0]);
+
+      const storeConf = STORE_CONFIG[best.store] || { bg: 'bg-zinc-700', text: 'text-white', label: best.store.toUpperCase() };
+      const svgIcon = SVG_PACKAGING[best.type] || SVG_PACKAGING.bottle;
+      const unitPrice = (best.price / best.volumeLiters).toFixed(2);
+
+      container.innerHTML = `
+        <div class="relative bg-gradient-to-r from-red-950/40 via-zinc-900 to-zinc-900 border-2 border-coca-red rounded-3xl p-5 md:p-6 shadow-xl shadow-red-950/20 flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden">
+          
+          <div class="absolute -top-10 -right-10 w-40 h-40 bg-coca-red/10 rounded-full blur-2xl pointer-events-none"></div>
+
+          <div class="flex-grow flex flex-col sm:flex-row items-center sm:items-start gap-4 text-center sm:text-left z-10">
+            
+            <div class="bg-zinc-950/80 p-3 rounded-2xl border border-zinc-800 flex items-center justify-center min-w-[100px] h-28">
+              ${svgIcon}
+            </div>
+
+            <div class="space-y-1.5">
+              <div class="flex items-center justify-center sm:justify-start gap-2">
+                <span class="bg-coca-red text-white text-[10px] font-black tracking-widest uppercase px-2.5 py-1 rounded-md shadow-md flex items-center gap-1">
+                  🔥 GERIAUSIAS DEALAS
+                </span>
+                <span class="${storeConf.bg} ${storeConf.text} text-[10px] font-black px-2 py-0.5 rounded tracking-wider">
+                  ${storeConf.label}
+                </span>
+              </div>
+
+              <h3 class="text-lg md:text-xl font-black text-white leading-tight">
+                ${best.title}
+              </h3>
+              
+              <p class="text-xs text-zinc-400 font-medium">${best.volume} • Galioja: ${best.validUntil}</p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-6 bg-zinc-950/60 border border-zinc-800/80 px-6 py-4 rounded-2xl z-10 w-full md:w-auto justify-between md:justify-end">
+            <div>
+              <span class="text-[10px] text-zinc-500 uppercase font-bold block">Pakuotė</span>
+              <div class="flex items-baseline gap-1.5">
+                <span class="text-2xl font-black text-white">${best.price.toFixed(2)} €</span>
+                ${best.oldPrice ? `<span class="text-xs text-zinc-500 line-through">${best.oldPrice.toFixed(2)} €</span>` : ''}
+              </div>
+            </div>
+
+            <div class="h-8 w-px bg-zinc-800"></div>
+
+            <div class="text-right">
+              <span class="text-[10px] text-zinc-400 uppercase font-bold block">Litro kaina</span>
+              <span class="text-2xl font-black text-coca-red">${unitPrice} €/l</span>
+            </div>
+          </div>
+
+        </div>
+      `;
+    }
+
+    function renderGrid(items) {
+      const grid = document.getElementById('dealsGrid');
+      const emptyState = document.getElementById('emptyState');
+
+      grid.innerHTML = '';
+
+      if (items.length === 0) {
+        grid.classList.add('hidden');
+        document.getElementById('emptyStateText').innerText = 'Pagal pasirinktus filtrus akcijų nerasta.';
+        emptyState.classList.remove('hidden');
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+      grid.classList.remove('hidden');
+
+      items.forEach(item => {
+        const storeConf = STORE_CONFIG[item.store] || { bg: 'bg-zinc-700', text: 'text-white', label: item.store.toUpperCase() };
+        const svgIcon = SVG_PACKAGING[item.type] || SVG_PACKAGING.bottle;
+        const unitPrice = (item.price / item.volumeLiters).toFixed(2);
+        
+        let containerHeight = "h-44"; 
+        let typeBadge = "PET BUTELIS";
+
+        if (item.type === "can") {
+          containerHeight = "h-36";
+          typeBadge = "SKARDINĖ";
+        } else if (item.type === "glass") {
+          containerHeight = "h-40";
+          typeBadge = "STIKLAS";
+        }
+
+        grid.innerHTML += `
+          <div class="bg-coca-card border border-zinc-800 rounded-2xl overflow-hidden hover:border-zinc-700 transition flex flex-col justify-between">
+            
+            <div class="relative ${containerHeight} bg-zinc-950/80 p-4 flex items-center justify-center overflow-hidden">
+              
+              ${svgIcon}
+              
+              <div class="absolute top-3 left-3 ${storeConf.bg} ${storeConf.text} text-[10px] font-black px-2.5 py-1 rounded-lg tracking-wider shadow">
+                ${storeConf.label}
+              </div>
+
+              ${item.discount > 0 ? `
+                <span class="absolute top-3 right-3 bg-coca-red text-white text-xs font-black px-2 py-1 rounded-lg shadow">
+                  -${item.discount}%
+                </span>
+              ` : ''}
+
+              <span class="absolute bottom-2 left-3 bg-zinc-900/90 text-zinc-400 text-[9px] font-bold px-2 py-0.5 rounded border border-zinc-800 tracking-wider">
+                ${typeBadge}
+              </span>
+            </div>
+
+            <div class="p-4 flex-grow flex flex-col justify-between">
+              <div>
+                <h3 class="font-bold text-white text-sm leading-snug mb-1">
+                  ${item.title}
+                </h3>
+                <p class="text-xs text-zinc-400 font-medium mb-3">${item.volume}</p>
+              </div>
+
+              <div class="pt-3 border-t border-zinc-800/80 flex items-end justify-between">
+                <div>
+                  <span class="text-[10px] text-zinc-500 uppercase font-semibold block">Kaina</span>
+                  <div class="flex items-baseline gap-1.5">
+                    <span class="text-xl font-black text-white">${item.price.toFixed(2)} €</span>
+                    ${item.oldPrice ? `<span class="text-xs text-zinc-500 line-through">${item.oldPrice.toFixed(2)} €</span>` : ''}
+                  </div>
+                  <span class="text-xs font-bold text-coca-red mt-0.5 block">${unitPrice} €/l</span>
+                </div>
+                <span class="text-[10px] text-zinc-400 font-medium bg-zinc-900 px-2 py-1 rounded border border-zinc-800">
+                  ${item.validUntil}
+                </span>
+              </div>
+            </div>
+
+          </div>
+        `;
+      });
+    }
+
+    function showErrorState(message) {
+      document.getElementById('dealsGrid').classList.add('hidden');
+      document.getElementById('bestDealContainer').innerHTML = '';
+      document.getElementById('emptyStateText').innerText = message;
+      document.getElementById('emptyState').classList.remove('hidden');
+    }
+
+    function resetFilters() {
+      document.querySelector('[data-store="visi"]').click();
+    }
+  </script>
+</body>
+</html>
