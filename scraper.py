@@ -3,19 +3,21 @@ import re
 import requests
 
 HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+    "Accept": "application/json, text/plain, */*",
+    "Accept-Language": "lt-LT,lt;q=0.9,en-US;q=0.8,en;q=0.7",
+    "Referer": "https://www.barbora.lt/",
+    "Origin": "https://www.barbora.lt"
 }
 
 def parse_volume(title):
     """Ištraukia tūrį litrais iš pavadinimo (pvz. 1.5 l, 0.33 l, 4x0.33 l)"""
-    # Tikrina multipack pvz. 4x0.33l
     multi_match = re.search(r'(\d+)\s*x\s*([\d\.,]+)\s*l', title, re.IGNORECASE)
     if multi_match:
         count = int(multi_match.group(1))
         vol = float(multi_match.group(2).replace(',', '.'))
         return round(count * vol, 2)
     
-    # Tikrina paprastą tūrį pvz. 1.5l arba 0.5 l
     single_match = re.search(r'([\d\.,]+)\s*l', title, re.IGNORECASE)
     if single_match:
         return float(single_match.group(1).replace(',', '.'))
@@ -34,12 +36,16 @@ def scrape_barbora():
     deals = []
     url = "https://barbora.lt/api/eshop/v1/search?q=coca-cola"
     try:
-        res = requests.get(url, headers=HEADERS, timeout=10)
+        session = requests.Session()
+        res = session.get(url, headers=HEADERS, timeout=10)
+        
+        print(f"Barbora API statusas: {res.status_code}")
         if res.status_code != 200:
             return deals
         
         data = res.json()
         products = data.get('products', [])
+        print(f"Rasta produktų: {len(products)}")
         
         for item in products:
             title = item.get('title', '')
@@ -47,9 +53,6 @@ def scrape_barbora():
                 continue
 
             price = float(item.get('price', 0))
-            old_price = item.get('comparative_unit_price_loc_params', {}) # arba tiesioginis old_price jei yra API
-            
-            # Jei yra nuolaidos kaina
             strike_price = item.get('strike_through_price')
             old_price_val = float(strike_price) if strike_price else None
             
@@ -78,14 +81,14 @@ def scrape_barbora():
 def main():
     all_deals = []
     
-    # Surenkami duomenys
     barbora_deals = scrape_barbora()
     all_deals.extend(barbora_deals)
     
-    # Jei nerasta nieko – neperrašom tuščiu failu
+    # Jei nerasta nieko – sukuriam tuščią masyvą arba paliekam seną, kad lūžtų ne git push, o matytųsi loguose
     if not all_deals:
-        print("Duomenų nerasta, deals.json neatnaujinamas.")
-        return
+        print("Dėmesio: Barboros API negrąžino prekių. Rašomas tuščias masyvas arba stabdoma.")
+        # Kad nepaliktume visiškai tuščio failo, įrašom bent tuščią sąrašą arba išeinam
+        all_deals = []
 
     # Suteikiami ID
     for idx, item in enumerate(all_deals, 1):
