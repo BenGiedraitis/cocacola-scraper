@@ -1,17 +1,14 @@
 import json
 import re
 import requests
+from bs4 import BeautifulSoup
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-    "Accept": "application/json, text/plain, */*",
     "Accept-Language": "lt-LT,lt;q=0.9,en-US;q=0.8,en;q=0.7",
-    "Referer": "https://www.barbora.lt/",
-    "Origin": "https://www.barbora.lt"
 }
 
 def parse_volume(title):
-    """Ištraukia tūrį litrais iš pavadinimo (pvz. 1.5 l, 0.33 l, 4x0.33 l)"""
     multi_match = re.search(r'(\d+)\s*x\s*([\d\.,]+)\s*l', title, re.IGNORECASE)
     if multi_match:
         count = int(multi_match.group(1))
@@ -32,73 +29,87 @@ def detect_type(title):
         return 'glass'
     return 'bottle'
 
-def scrape_barbora():
+def normalize_store(name):
+    n = name.lower()
+    if 'maxima' in n: return 'Maxima'
+    if 'iki' in n: return 'IKI'
+    if 'rimi' in n: return 'Rimi'
+    if 'lidl' in n: return 'Lidl'
+    if 'norfa' in n: return 'Norfa'
+    return 'Kita'
+
+def scrape_pricer():
     deals = []
-    url = "https://barbora.lt/api/eshop/v1/search?q=coca-cola"
+    url = "https://pricer.lt/cenos/search?query=coca-cola"
+    
     try:
-        session = requests.Session()
-        res = session.get(url, headers=HEADERS, timeout=10)
-        
-        print(f"Barbora API statusas: {res.status_code}")
+        res = requests.get(url, headers=HEADERS, timeout=15)
         if res.status_code != 200:
+            print(f"Pricer.lt HTTP klaida: {res.status_code}")
             return deals
+
+        soup = BeautifulSoup(res.text, 'html.parser')
         
-        data = res.json()
-        products = data.get('products', [])
-        print(f"Rasta produktų: {len(products)}")
+        # Pricer.lt produktų kortelių paieška (pritaikoma pagal bendrą struktūrą)
+        items = soup.select('.product-item, .search-result-item, tr.product-row')
         
-        for item in products:
-            title = item.get('title', '')
+        if not items:
+            # Alternatyvi paieška pagal bendrus elementus jei struktūra kitokia
+            items = soup.find_all(lambda tag: tag.name == 'div' and 'coca-cola' in tag.get_text().lower())
+
+        for item in items:
+            text = item.get_text(" ", strip=True)
+            if 'coca-cola' not in text.lower():
+                continue
+            
+            title_elem = item.find(['h3', 'h4', 'a', 'span'], class_=re.compile(name='title|name', flags=re.I))
+            title = title_elem.get_text(strip=True) if title_elem else "Coca-Cola"
+            
             if 'coca-cola' not in title.lower():
+                title = "Coca-Cola"
+
+            # Kainos paieška tekstinėje išraiškoje
+            prices = re.findall(r'([\d\.,]+)\s*€', text)
+            price = float(prices[0].replace(',', '.')) if prices else 0.0
+            if price == 0.0:
                 continue
 
-            price = float(item.get('price', 0))
-            strike_price = item.get('strike_through_price')
-            old_price_val = float(strike_price) if strike_price else None
+            old_price = float(prices[1].replace(',', '.')) if len(prices) > 1 else None
             
             discount = 0
-            if old_price_val and old_price_val > price:
-                discount = int(round(((old_price_val - price) / old_price_val) * 100))
+            if old_price and old_price > price:
+                discount = int(round(((old_price - price) / old_price) * 100))
 
-            vol_liters = parse_volume(title)
+            vol_liters = parse_volume(title + " " + text)
+            store = normalize_store(text)
 
             deals.append({
-                "store": "Maxima",
+                "store": store,
                 "title": title,
                 "volume": f"{vol_liters} l",
                 "volumeLiters": vol_liters,
                 "price": price,
-                "oldPrice": old_price_val,
+                "oldPrice": old_price,
                 "discount": discount,
                 "type": detect_type(title),
-                "validUntil": "Barbora"
+                "validUntil": "Pricer.lt"
             })
+
     except Exception as e:
-        print(f"Barbora klaida: {e}")
-    
+        print(f"Pricer klaida: {e}")
+
     return deals
 
 def main():
-    all_deals = []
-    
-    barbora_deals = scrape_barbora()
-    all_deals.extend(barbora_deals)
-    
-    # Jei nerasta nieko – sukuriam tuščią masyvą arba paliekam seną, kad lūžtų ne git push, o matytųsi loguose
-    if not all_deals:
-        print("Dėmesio: Barboros API negrąžino prekių. Rašomas tuščias masyvas arba stabdoma.")
-        # Kad nepaliktume visiškai tuščio failo, įrašom bent tuščią sąrašą arba išeinam
-        all_deals = []
+    all_deals = scrape_pricer()
 
-    # Suteikiami ID
     for idx, item in enumerate(all_deals, 1):
         item["id"] = idx
 
-    # Įrašymas į deals.json
     with open("deals.json", "w", encoding="utf-8") as f:
         json.dump(all_deals, f, ensure_ascii=False, indent=2)
         
-    print(f"Sėkmingai atnaujinta {len(all_deals)} pasiūlymų.")
+    print(f"Sėkmingai rasta ir įrašyta: {len(all_deals)} pasiūlymų.")
 
 if __name__ == "__main__":
     main()
