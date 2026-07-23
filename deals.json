@@ -1,19 +1,60 @@
 {
-  "lastUpdated": "2026-07-23T16:57:09.028014",
+  "lastUpdated": "2026-07-23T16:59:56.728552",
   "deals": [
     {
       "store": "Maxima",
       "title": "Coca-Cola 2L",
       "price": 1.99,
-      "volume": "2L",
-      "validUntil": "2026-08-01"
+      "oldPrice": 2.49,
+      "volume": "2 l",
+      "volumeLiters": 2.0,
+      "discount": 20,
+      "validUntil": "2026-08-01",
+      "type": "bottle"
     },
     {
       "store": "IKI",
       "title": "Coca-Cola 0.5L",
       "price": 0.89,
-      "volume": "0.5L",
-      "validUntil": "2026-07-31"
+      "oldPrice": 1.19,
+      "volume": "0.5 l",
+      "volumeLiters": 0.5,
+      "discount": 25,
+      "validUntil": "2026-07-31",
+      "type": "bottle"
+    },
+    {
+      "store": "Rimi",
+      "title": "Coca-Cola skardinė 0.33L",
+      "price": 0.59,
+      "oldPrice": 0.79,
+      "volume": "0.33 l",
+      "volumeLiters": 0.33,
+      "discount": 25,
+      "validUntil": "2026-07-30",
+      "type": "can"
+    },
+    {
+      "store": "Lidl",
+      "title": "Coca-Cola 1.5L",
+      "price": 1.49,
+      "oldPrice": 1.99,
+      "volume": "1.5 l",
+      "volumeLiters": 1.5,
+      "discount": 25,
+      "validUntil": "2026-07-29",
+      "type": "bottle"
+    },
+    {
+      "store": "Norfa",
+      "title": "Coca-Cola stiklas 0.33L",
+      "price": 0.99,
+      "oldPrice": 1.29,
+      "volume": "0.33 l",
+      "volumeLiters": 0.33,
+      "discount": 23,
+      "validUntil": "2026-07-28",
+      "type": "glass"
     }
   ]
 }
