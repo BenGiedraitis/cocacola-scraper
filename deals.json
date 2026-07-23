@@ -1,1 +1,19 @@
-[]
+{
+  "lastUpdated": "2026-07-23T16:57:09.028014",
+  "deals": [
+    {
+      "store": "Maxima",
+      "title": "Coca-Cola 2L",
+      "price": 1.99,
+      "volume": "2L",
+      "validUntil": "2026-08-01"
+    },
+    {
+      "store": "IKI",
+      "title": "Coca-Cola 0.5L",
+      "price": 0.89,
+      "volume": "0.5L",
+      "validUntil": "2026-07-31"
+    }
+  ]
+}
